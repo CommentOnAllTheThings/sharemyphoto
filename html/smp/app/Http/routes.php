@@ -11,13 +11,15 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [
+    'as' => 'gallery',
+    'uses' => 'GalleryController@showPage'
+]);
 
-Route::get('/show/{page}', function ($page) {
-    return 'Showing Page '.$page;
-});
+Route::get('/show/{page}', [
+    'as' => 'gallery_pagination',
+    'uses' => 'GalleryController@showPage'
+])->where('page', '[1-9][0-9]*');
 
 Route::get('/upload', function(){
 	return 'Uploader';
@@ -31,18 +33,24 @@ Route::post('/delete', function(){
 	return 'POST Delete';
 });
 
-Route::get('/view/{id}', function($id){
-	return 'Viewing '.$id;
-});
+Route::get('/view/{guid}', function($guid){
+	return 'Viewing '.$guid;
+})->where('guid', '[A-Za-z0-9]+');
 
-Route::get('/login', function(){
-	return 'Login Form';
-});
+Route::get('/get/{guid}', function($guid){
+	return 'Retrieving image '.$guid;
+})->where('guid', '[A-Za-z0-9]+');
 
-Route::post('/login', function(){
-	return 'Authenticating...';
-});
+/* TO DO
+	Route::get('/login', function(){
+		return 'Login Form';
+	});
 
-Route::get('/logout', function(){
-	return 'Logout';
-});
+	Route::post('/login', function(){
+		return 'Authenticating...';
+	});
+
+	Route::get('/logout', function(){
+		return 'Logout';
+	});
+*/
