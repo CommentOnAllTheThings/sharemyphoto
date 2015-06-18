@@ -34,6 +34,8 @@
             .title {
                 font-size: 72px;
                 margin-bottom: 40px;
+                padding-left: 20px;
+                padding-right: 20px;
             }
         </style>
     </head>
@@ -44,6 +46,7 @@
                     We're sorry, we couldn't find the image or page you were looking for.<br/>
                     Perhaps it was deleted?
                 </div>
+                <a href="/">Return to Home</a>
             </div>
         </div>
     </body>
