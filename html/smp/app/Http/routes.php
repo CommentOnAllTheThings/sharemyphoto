@@ -21,9 +21,10 @@ Route::get('/show/{page}', [
     'uses' => 'GalleryController@showPage'
 ])->where('page', '[1-9][0-9]*');
 
-Route::get('/upload', function(){
-	return 'Uploader';
-});
+Route::get('/upload', [
+    'as' => 'gallery_uploader',
+    'uses' => 'GalleryController@showUploader'
+]);
 
 Route::put('/upload', function(){
 	return 'Uploader';

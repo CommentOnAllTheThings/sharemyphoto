@@ -38,7 +38,7 @@ class GalleryController extends Controller {
 		@returns The uploader view.
 	*/
 	public function showUploader() {
-		return view('uploader', ['page_title' => 'Upload Image']);
+		return view('uploader');
 	}
 
 	/*
@@ -58,7 +58,8 @@ class GalleryController extends Controller {
 		@returns TO DO
 	*/
 	public function showImage($guid) {
-		return '';
+		// TO DO
+		return view('showimage', ['image_path' => '/image/to/do']);
 	}
 
 	/*

@@ -1,3 +1,5 @@
-@include('partials/header.php')
-	<h2>Uploader</h2>
-@include('partials/footer.php')
+@extends('layouts.master')
+@section('pagetitle', 'Upload Image')
+@section('content')
+	Uploader
+@stop
