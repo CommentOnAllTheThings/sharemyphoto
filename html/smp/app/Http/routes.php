@@ -25,6 +25,10 @@ Route::get('/upload', function(){
 	return 'Uploader';
 });
 
+Route::put('/upload', function(){
+	return 'Uploader';
+});
+
 Route::get('/delete', function(){
 	return 'Delete';
 });
@@ -33,13 +37,15 @@ Route::post('/delete', function(){
 	return 'POST Delete';
 });
 
-Route::get('/view/{guid}', function($guid){
-	return 'Viewing '.$guid;
-})->where('guid', '[A-Za-z0-9]+');
+Route::get('/view/{guid}', [
+	'as' => 'gallery_view',
+	'uses' => 'GalleryController@showImage'
+])->where('guid', '[A-Za-z0-9]+');
 
-Route::get('/get/{guid}', function($guid){
-	return 'Retrieving image '.$guid;
-})->where('guid', '[A-Za-z0-9]+');
+Route::get('/get/{guid}', [
+	'as' => 'gallery_retrieve',
+	'uses' => 'GalleryController@getImage'
+])->where('guid', '[A-Za-z0-9]+');
 
 /* TO DO
 	Route::get('/login', function(){

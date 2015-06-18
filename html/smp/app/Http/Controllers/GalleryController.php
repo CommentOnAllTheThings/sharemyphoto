@@ -5,15 +5,14 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 
 /*
-	Description: Our image gallery controller which retrieves the list of images to display on the site
+	Description: Our image gallery controller which retrieves, uploads and deletes images on the site
 */
 class GalleryController extends Controller {
-
 	/*
 		Description: Gets the target page from the gallery
 
-		@param page_number The target page number we want to retrieve
-		@returns null on failure, array containing images on success
+		@param page_number The target page number we want to retrieve.
+		@returns 
 	*/
 	public function showPage($page_number = 1) {
 		// Check if the page_number is set and numeric! 
@@ -31,5 +30,54 @@ class GalleryController extends Controller {
 
 		// Pass back the data
 		return 'GalleryController is showing page '.$page_number;
+	}
+
+	/*
+		Description: Sends the client the uploader view.
+		
+		@returns The uploader view.
+	*/
+	public function showUploader() {
+		return view('uploader', ['page_title' => 'Upload Image']);
+	}
+
+	/*
+		Description: Uploads an image from the client's computer to the server.
+
+		@param TO DO
+		@returns TO DO
+	*/
+	public function uploadImage() {
+		return '';
+	}
+
+	/*
+		Description: Loads the image file page to show a larger version of the image.
+
+		@param guid The image's unique identifier.
+		@returns TO DO
+	*/
+	public function showImage($guid) {
+		return '';
+	}
+
+	/*
+		Description: Retrieves the image file from the server.
+
+		@param guid The image's unique identifier.
+		@returns TO DO
+	*/
+	public function getImage($guid) {
+		return '';
+	}
+
+	/*
+		Description: Marks an image or a set of images as deleted on the server.
+
+		@param TO DO
+		@returns TO DO
+	*/
+	public function deleteImage() {
+		return '';
 	}
 }
