@@ -12,7 +12,7 @@ class GalleryController extends Controller {
 		Description: Gets the target page from the gallery
 
 		@param page_number The target page number we want to retrieve.
-		@returns 
+		@returns The gallery view.
 	*/
 	public function showPage($page_number = 1) {
 		// Check if the page_number is set and numeric! 
@@ -26,10 +26,22 @@ class GalleryController extends Controller {
 		if ($page_number < 1)
 			abort(404);
 
-		// Retrieve the page
+		// TO DO -- Update highest page number and retrieve list of images!
+		$highest_page = 1;
 
-		// Pass back the data
-		return 'GalleryController is showing page '.$page_number;
+		// Initialize parameters to pass to gallery view
+		$view_parameters = array();
+
+		// TO DO
+
+		// Save current page number
+		$view_parameters['current_page'] = $page_number;
+
+		// Save max (ie. highest) page number
+		$view_parameters['highest_page'] = $highest_page;
+
+		// Process the view
+		return view('gallery', $view_parameters);
 	}
 
 	/*
