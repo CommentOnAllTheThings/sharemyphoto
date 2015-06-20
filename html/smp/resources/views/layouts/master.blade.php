@@ -10,8 +10,13 @@
         <!-- Load Bootstrap -->
         <link href='/thirdparty/bootstrap/css/bootstrap.min.css' rel='stylesheet' type='text/css'>
         <script type="text/javascript" src="/thirdparty/bootstrap/js/bootstrap.min.js"></script>    
+
+        @section('headerincludes')
+        @show
     </head>
 <body>
+    @section('bodyincludes')
+    @show
 	<!-- Page Header -->
     @section('header')
         <nav class="navbar navbar-default">
