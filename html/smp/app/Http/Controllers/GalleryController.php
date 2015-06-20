@@ -64,6 +64,17 @@ class GalleryController extends Controller {
 	}
 
 	/*
+		Description: Returns the upload progress.
+
+		@param TO DO
+		@returns TO DO
+	*/
+	public function getProgress() {
+		// TO DO
+		return ['progress' => '50'];
+	}
+
+	/*
 		Description: Loads the image file page to show a larger version of the image.
 
 		@param guid The image's unique identifier.
@@ -90,7 +101,17 @@ class GalleryController extends Controller {
 		@param TO DO
 		@returns TO DO
 	*/
-	public function deleteImage() {
+	public function showDeleteImageConfirmation($guid, $key) {
+		return '';
+	}
+
+	/*
+		Description: Marks an image or a set of images as deleted on the server.
+
+		@param TO DO
+		@returns TO DO
+	*/
+	public function deleteImage($guid, $key) {
 		return '';
 	}
 }

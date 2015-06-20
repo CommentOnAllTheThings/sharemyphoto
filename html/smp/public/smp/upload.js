@@ -22,21 +22,20 @@ $(document).ready(function(){
 		validateFile(true);
 	});
 
-	$('#upload-button').on('click', function(){
+	/*$('#upload-button').on('click', function(){
 		uploadImage();
-	});
+	});*/
 });
 
-// 
+var image_upload_interval = null;
+var image_upload_progress = 0;
+
 function uploadImage() {
 	// Check if the required information was entered into the form...
 	var validation_ok = validateUpload();
 	
 	// We will only upload the image if everything checks out and we are not performing another upload at the same time!
-	if (validation_ok && !block_ajax) {
-		// Block any additional uploads while we are performing an upload!
-		block_ajax = true;
-
+	if (validation_ok) {
 		// Show a message notifying the user we are uploading the image now...
 		$('#info-notification').show().html('<strong>Uploading image...please wait.</strong>');
 
@@ -44,29 +43,58 @@ function uploadImage() {
 		$('#upload-progress').show();
 
 		// Upload the image!
-		$('#upload-form-fieldset').prop('disabled', true);
 
-		// TO DO
+		// Create our AJAX call to poll the server to get the image upload progress
+		// This will make a request every 5 seconds to update the progress
+		if (image_upload_interval == null) {
+			image_upload_interval = setInterval(function(){
+				// Get a JSON progress response
+				$.getJSON('/image/upload/progress').done(function(data) {
+					// Iterate through the response
+					$.each(data, function(key, value) {
+						// Get the progress
+						if (key == 'progress') {
+							// Convert the percentage to an integer
+							var percentage = parseInt(value);
+
+							// Update the progress bar
+							updateUploadProgress(percentage);
+
+							// Are we done?
+							if (typeof progress !== 'undefined' && percentage == 100) {
+								// Tell the user we're done and clear this interval
+								clearInterval(image_upload_interval);
+								image_upload_interval = null;
+								$('#info-notification').html('<strong>Image upload complete.</strong>');
+							}
+						}
+					});
+				});
+			}, 5000);
+		}
+		return true;
 	}
 
 	return false;
 }
 
-function updateUploadProgress(progress) {
-	if (isNaN(progress)) {
-		var percentage = parseInt(progress);
-		if (percentage != 'NaN' && percentage >= 0 && percentage <= 100) {
-			// Width Attribute - upload_progress_percentage CONCAT %
-			var upload_progress = upload_progress_percentage + '%';
+/*function updateUploadProgress(progress) {
+	// Default progress is 0%
+	var display_progress = 0;
 
-			// Update the progress bar
-			$('#upload-progress-bar').css('width', upload_progress);
-			$('#upload-progress-bar').attr('aria-valuenow', percentage);
+	// Check if we can update the progress, we can't do anything if percentage isn't a number!
+	// Once that's done, see how far we've progressed...
+	if (typeof progress !== 'undefined' && progress != 'NaN' && progress >= 0 && progress <= 100)
+		display_progress = progress;
 
-			$('#upload-file-progress-text').text(upload_progress);
-		}
-	}
-}
+	// Width Attribute - upload_progress_percentage CONCAT %
+	var upload_progress = display_progress + '%';
+
+	$('#upload-progress-bar').css('width', upload_progress);
+	$('#upload-progress-bar').attr('aria-valuenow', display_progress);
+
+	$('#upload-file-progress-text').text(upload_progress);
+}*/
 
 // Validates the title entered
 function validateTitle(suppress) {

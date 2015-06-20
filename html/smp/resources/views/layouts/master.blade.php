@@ -4,6 +4,8 @@
         <!-- Page Title -->
         <title>ShareMyPho.to - @yield('pagetitle')</title>
 
+        <!-- CSRF -->
+
         <!-- Load jQuery -->
         <script type="text/javascript" src="/thirdparty/jquery/jquery.min.js"></script>
 
@@ -34,7 +36,7 @@
         		<div class="collapse navbar-collapse" id="main-menu-collapse">
         			<ul class="nav navbar-nav">
         				<li><a href="/">Gallery</a></li>
-        				<li><a href="/upload">Upload</a></li>
+        				<li><a href="/image/upload">Upload</a></li>
         			</ul>
         		</div>
         	</div>

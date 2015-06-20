@@ -16,34 +16,47 @@ Route::get('/', [
     'uses' => 'GalleryController@showPage'
 ]);
 
-Route::get('/show/{page}', [
+Route::get('/gallery', [
+    'as' => 'gallery',
+    'uses' => 'GalleryController@showPage'
+]);
+
+Route::get('/gallery/page/{page}', [
     'as' => 'gallery_pagination',
     'uses' => 'GalleryController@showPage'
 ])->where('page', '[1-9][0-9]*');
 
-Route::get('/upload', [
+Route::get('/image/upload', [
     'as' => 'gallery_uploader',
     'uses' => 'GalleryController@showUploader'
 ]);
 
-Route::put('/upload', function(){
-	return 'Uploader';
+Route::get('/image/upload/progress', [
+    'as' => 'gallery_uploader_progress',
+    'uses' => 'GalleryController@getProgress'
+]);
+
+Route::post('/image/upload/save', function(){
+	'as' => 'gallery_uploader_upload',
+    'uses' => 'GalleryController@uploadImage'
 });
 
-Route::get('/delete', function(){
-	return 'Delete';
-});
+Route::get('/image/delete/{guid}/{key}', [
+	'as' => 'gallery_confirm_deletion',
+	'uses' => 'GalleryController@showDeleteImageConfirmation'
+])->where(['guid' => '[A-Za-z0-9]+', 'key' => '[A-Za-z0-9]+']);
 
-Route::post('/delete', function(){
-	return 'POST Delete';
-});
+Route::post('/image/delete/{guid}/{key}', [
+	'as' => 'gallery_confirm_deletion',
+	'uses' => 'GalleryController@deleteImage'
+])->where(['guid' => '[A-Za-z0-9]+', 'key' => '[A-Za-z0-9]+']);
 
-Route::get('/view/{guid}', [
+Route::get('/image/view/{guid}', [
 	'as' => 'gallery_view',
 	'uses' => 'GalleryController@showImage'
 ])->where('guid', '[A-Za-z0-9]+');
 
-Route::get('/get/{guid}', [
+Route::get('/image/get/{guid}', [
 	'as' => 'gallery_retrieve',
 	'uses' => 'GalleryController@getImage'
 ])->where('guid', '[A-Za-z0-9]+');
