@@ -36,10 +36,10 @@ Route::get('/image/upload/progress', [
     'uses' => 'GalleryController@getProgress'
 ]);
 
-Route::post('/image/upload/save', function(){
+Route::post('/image/upload/save', [
 	'as' => 'gallery_uploader_upload',
     'uses' => 'GalleryController@uploadImage'
-});
+]);
 
 Route::get('/image/delete/{guid}/{key}', [
 	'as' => 'gallery_confirm_deletion',

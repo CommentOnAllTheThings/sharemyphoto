@@ -42,6 +42,9 @@ function uploadImage() {
 		// Show the upload progress bar
 		$('#upload-progress').show();
 
+		// Hide the error message if it exists and it is visible
+		$('#info-danger').hide();
+
 		// Upload the image!
 
 		// Create our AJAX call to poll the server to get the image upload progress
@@ -78,7 +81,7 @@ function uploadImage() {
 	return false;
 }
 
-/*function updateUploadProgress(progress) {
+function updateUploadProgress(progress) {
 	// Default progress is 0%
 	var display_progress = 0;
 
@@ -94,7 +97,7 @@ function uploadImage() {
 	$('#upload-progress-bar').attr('aria-valuenow', display_progress);
 
 	$('#upload-file-progress-text').text(upload_progress);
-}*/
+}
 
 // Validates the title entered
 function validateTitle(suppress) {

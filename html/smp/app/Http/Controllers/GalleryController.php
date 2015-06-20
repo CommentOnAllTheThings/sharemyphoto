@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use App\Models\Image;
+use Validator;
 
 /*
 	Description: Our image gallery controller which retrieves, uploads and deletes images on the site
@@ -29,10 +32,15 @@ class GalleryController extends Controller {
 		// TO DO -- Update highest page number and retrieve list of images!
 		$highest_page = 1;
 
+		// TO DO
+		$images = Image::all();
+
+		// 404 if the page number exceeds the highest page
+		if ($page_number > $highest_page)
+			abort(404);
+
 		// Initialize parameters to pass to gallery view
 		$view_parameters = array();
-
-		// TO DO
 
 		// Save current page number
 		$view_parameters['current_page'] = $page_number;
@@ -59,8 +67,73 @@ class GalleryController extends Controller {
 		@param TO DO
 		@returns TO DO
 	*/
-	public function uploadImage() {
-		return '';
+	public function uploadImage(Request $request) {
+		// Flag to determine if the image upload was successful
+		$image_upload_successful = false;
+
+		// The image unique identifier (GUID)
+		$image_guid = '';
+
+		// The image delete key
+		$image_delete_key = '';
+
+		$title = $request->input('upload-title', 'No Title');
+		$description = $request->input('upload-description', '');
+		$file = $request->file('upload-file');
+		// Storage::disk('local')->put($file->getFilename().'.'.$extension,  File::get($file));
+
+		// Create our array of data to test in the validator
+		$validator_data = array('imagefile' => $file);
+
+		// Create our validator and test it as an image
+		$validator = validator::make($validator_data, [
+			'imagefile' => 'required|image'
+		]);
+
+		// Did validation pass on the image?
+		if ($validator->fails()) {
+			// No, either they didn't choose an image or the file is of the wrong type!
+			// Send the user back to the image upload page
+			return redirect()->route('gallery_uploader')->with('message', 'Please select an image file to upload.');
+		}
+
+		// Validation is ok, keep going!
+		// Generate random GUID
+		$generated_guid = str_random(32);
+
+		// Generate random delete key
+		$generated_delete_key = str_random(128);
+
+		// Create a new entry in our image table (smp_images)
+		$image = new Image;
+		// Set the values to map to the table columns
+        $image->image_guid = $generated_guid;
+        $image->image_title = $title;
+        $image->image_description = $description;
+        $image->image_status = 1;
+        $image->image_delete_key = $generated_delete_key;
+        // TO DO -- If and when you do implement users, you can set user_id HERE!
+        $creation_success = $image->save();
+
+        if ($creation_success) {
+        	$image_guid = $generated_guid;
+
+        	// Process the file
+
+        }
+
+		if (!$image_upload_successful) {
+			// Send the user back to the image upload page
+			return redirect()->route('gallery_uploader')->with('message', 'Image could not be uploaded! Please try again later.');
+		}
+		else {
+			// Create the array of parameters to house the GUID
+			$view_parameters = array();
+			$view_parameters[] = $image_guid;
+
+			// Send the user to the image viewer page
+			return redirect()->route('gallery_view', $view_parameters)->with('message', 'Image uploaded successfully!');
+		}
 	}
 
 	/*

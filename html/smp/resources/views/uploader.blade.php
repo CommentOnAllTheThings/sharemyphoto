@@ -10,8 +10,14 @@
 @stop
 @section('content')
 	<div class="container">
-		<form id="upload-form" onsubmit="return uploadImage();" method="POST" action="/image/upload">
+		<h2 class="text-center">Upload Image</h2>
+		<form id="upload-form" onsubmit="return uploadImage();" method="POST" action="/image/upload/save" enctype="multipart/form-data">
 			<!-- Notification -->
+			@if (session('message'))
+				<div class="alert alert-danger" id="info-danger">
+			        <strong>{{ session('message') }}</strong>
+			    </div>
+			@endif
 			<div class="alert alert-info" id="info-notification" role="alert" style="display: none;"></div>
 
 			<!-- Image Title -->
