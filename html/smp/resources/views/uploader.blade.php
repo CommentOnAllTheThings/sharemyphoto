@@ -11,28 +11,41 @@
 @section('content')
 	<div class="container">
 		<form id="upload-form" onsubmit="return uploadImage();" action="#">
-			<!-- Image Title -->
-			<div id="upload-title-group" class="form-group">
-				<label class="control-label" for="upload-title">Image Title*</label>
-				<input type="text" id="upload-title" name="upload-title" class="form-control" placeholder="Title">
-				<p id="upload-title-validation" class="validation-error"></p>
-			</div>
+			<fieldset id="upload-form-fieldset">
+				<!-- Notification -->
+				<div class="alert alert-info" id="info-notification" role="alert" style="display: none;"></div>
 
-			<!-- Image Description -->
-			<div id="upload-description-group" class="form-group">
-				<label class="control-label" for="upload-description">Image Description</label>
-				<textarea id="upload-description" name="upload-description" class="form-control" placeholder="Description" rows="3"></textarea>
-			</div>
+				<!-- Image Title -->
+				<div id="upload-title-group" class="form-group">
+					<label class="control-label" for="upload-title">Image Title*</label>
+					<input type="text" id="upload-title" name="upload-title" class="form-control" placeholder="Title">
+					<p id="upload-title-validation" class="help-block"></p>
+				</div>
 
-			<!-- Image File -->
-			<div id="upload-file-group" class="form-group">
-				<label class="control-label" for="upload-file">Image File*</label>
-				<input type="file" id="upload-file" name="upload-file" accept=".jpg,.jpeg,.bmp,.gif,.png">
-				<p id="upload-file-validation" class="validation-error"></p>
-			</div>
+				<!-- Image Description -->
+				<div id="upload-description-group" class="form-group">
+					<label class="control-label" for="upload-description">Image Description</label>
+					<textarea id="upload-description" name="upload-description" class="form-control" placeholder="Description" rows="3"></textarea>
+				</div>
 
-			<!-- Upload Button -->
-			<button type="submit" class="btn btn-success" id="upload-button">Upload</button>
+				<!-- Image File -->
+				<div id="upload-file-group" class="form-group">
+					<label class="control-label" for="upload-file">Image File*</label>
+					<input type="file" id="upload-file" name="upload-file" accept=".jpg,.jpeg,.bmp,.gif,.png">
+					<p id="upload-file-validation" class="help-block"></p>
+				</div>
+
+				<div class="progress upload-bar-container upload-bar" id="upload-progress">
+					<div class="progress-bar progress-bar-striped active" id="upload-progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+						<span id="upload-file-progress-text">0%</span>
+					</div>
+				</div>
+
+				<!-- Upload Button -->
+				<div class="text-center">
+					<button type="submit" class="btn btn-success" id="upload-button">Upload</button>
+				</div>
+			</fieldset>
 		</form>
 	</div>
 @stop

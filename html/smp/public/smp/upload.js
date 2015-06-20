@@ -5,7 +5,7 @@ var csrf_token = null;
 var block_ajax = false;
 
 // Our RegExp test for strings
-var test_string = /[A-Za-z0-9 !#%&."',.\/\\?]/i;
+var test_string = /^[A-Za-z0-9\s!@#\$%&\?]+$/i;
 
 // The file extensions we will allow users to upload
 var image_extensions = ['.jpg', '.jpeg', '.bmp', '.gif', '.png'];
@@ -37,14 +37,35 @@ function uploadImage() {
 		// Block any additional uploads while we are performing an upload!
 		block_ajax = true;
 
+		// Show a message notifying the user we are uploading the image now...
+		$('#info-notification').show().html('<strong>Uploading image...please wait.</strong>');
+
 		// Show the upload progress bar
 		$('#upload-progress').show();
 
 		// Upload the image!
+		$('#upload-form-fieldset').prop('disabled', true);
+
 		// TO DO
 	}
 
 	return false;
+}
+
+function updateUploadProgress(progress) {
+	if (isNaN(progress)) {
+		var percentage = parseInt(progress);
+		if (percentage != 'NaN' && percentage >= 0 && percentage <= 100) {
+			// Width Attribute - upload_progress_percentage CONCAT %
+			var upload_progress = upload_progress_percentage + '%';
+
+			// Update the progress bar
+			$('#upload-progress-bar').css('width', upload_progress);
+			$('#upload-progress-bar').attr('aria-valuenow', percentage);
+
+			$('#upload-file-progress-text').text(upload_progress);
+		}
+	}
 }
 
 // Validates the title entered
@@ -60,14 +81,28 @@ function validateTitle(suppress) {
 		// Check to see if it is valid or not
 		if (title_valid) {
 			// Ok
-			// Remmove the error class if it still has it applied
-			if ($('#upload-title-group').hasClass('has-error')) {
-				$('#upload-title-group').removeClass('has-error');
-			}
+			if (title_value.length > 1) {
+				// Remove the error class if it still has it applied
+				if ($('#upload-title-group').hasClass('has-error')) {
+					$('#upload-title-group').removeClass('has-error');
+				}
 
-			// Clear the validation error message just in case!
-			$('#upload-title-validation').text('');
-			return true;
+				// Clear the validation error message just in case!
+				$('#upload-title-validation').text('');
+				return true;
+			}
+			else {
+				if (!suppress) {
+					// Error - Title is too short
+					// Add the error class if it has not already been applied
+					if (!$('#upload-title-group').hasClass('has-error')) {
+						$('#upload-title-group').addClass('has-error');
+					}
+
+					// Show an error message
+					$('#upload-title-validation').text('Image titles must be a combination of any two or more uppercase and/or lowercase letters A to Z, and/or numbers, and/or spaces.');
+				}
+			}
 		}
 		else {
 			if (!suppress) {
@@ -127,7 +162,7 @@ function validateFile(suppress) {
 				// It doesn't make sense to check it if it happens to be shorter...
 				if (check_extension != null && file_name.length > check_extension.length) {
 					// Grab the extension from the file name
-					var file_compare_extension = file_name.substr(file_name, -1 * (check_extension.length));
+					var file_compare_extension = file_name.substr(file_name.length - check_extension.length);
 					if (file_compare_extension != null && check_extension.toLowerCase() == file_compare_extension.toLowerCase()) {
 						// File name ok
 						// We will check to see if it's actually an image file on the server side, so client side checks out!

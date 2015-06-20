@@ -7,3 +7,7 @@ textarea {
 
 	font-size: 14px;
 }
+
+.upload-bar {
+	display: none;
+}
