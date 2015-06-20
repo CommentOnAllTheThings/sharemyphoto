@@ -12,7 +12,19 @@ var image_extensions = ['.jpg', '.jpeg', '.bmp', '.gif', '.png'];
 
 // Initiate our bindings to buttons, fields etc. to perform validation as the user changes things in the form
 $(document).ready(function(){
-	// TO DO
+	// Add binding for title field
+	$('#upload-title').on('keyup blur', function(){
+		validateTitle(true);
+	});
+
+	// Add binding for file field
+	$('#upload-file').on('change blur', function(){
+		validateFile(true);
+	});
+
+	$('#upload-button').on('click', function(){
+		uploadImage();
+	});
 });
 
 // 
@@ -31,10 +43,15 @@ function uploadImage() {
 		// Upload the image!
 		// TO DO
 	}
+
+	return false;
 }
 
 // Validates the title entered
-function validateTitle() {
+function validateTitle(suppress) {
+	// Make sure suppress is set to either true or false
+	suppress = suppress ? true : false;
+
 	var title_value = $('#upload-title').val();
 	if (title_value != null && title_value.length > 0) {
 		// Test our string against our RegExp test for strings
@@ -53,31 +70,35 @@ function validateTitle() {
 			return true;
 		}
 		else {
-			// Error - Invalid characters in the title
-			// Add the error class if it has not already been applied
-			if (!$('#upload-title-group').hasClass('has-error')) {
-				$('#upload-title-group').addClass('has-error');
-			}
+			if (!suppress) {
+				// Error - Invalid characters in the title
+				// Add the error class if it has not already been applied
+				if (!$('#upload-title-group').hasClass('has-error')) {
+					$('#upload-title-group').addClass('has-error');
+				}
 
-			// Show an error message
-			$('#upload-title-validation').text('Image titles can only contain both uppercase and lowercase letters A to Z, numbers and spaces.');
+				// Show an error message
+				$('#upload-title-validation').text('Image titles can only contain both uppercase and lowercase letters A to Z, numbers and spaces.');
+			}
 		}
 	}
 	else {
 		// Error - Empty or null
 		// Add the error class if it has not already been applied
-		if (!$('#upload-title-group').hasClass('has-error')) {
-			$('#upload-title-group').addClass('has-error');
-		}
+		if (!suppress) {
+			if (!$('#upload-title-group').hasClass('has-error')) {
+				$('#upload-title-group').addClass('has-error');
+			}
 
-		// Show an error message
-		$('#upload-title-validation').text('Please enter a suitable title for the image.');
+			// Show an error message
+			$('#upload-title-validation').text('Please enter a suitable title for the image.');
+		}
 	}
 	return false;
 }
 
 // Validates the description entered
-function validateDescription() {
+function validateDescription(suppress) {
 	// This field is optional!
 	// In reality it is pointless to validate it since the user could practically put anything here.
 	// It makes no sense to block the user from uploading an image just because they decided to not fill it out, or filled it out but they enter weird characters and stuff.
@@ -86,7 +107,10 @@ function validateDescription() {
 }
 
 // Validates the file chosen for upload
-function validateFile() {
+function validateFile(suppress) {
+	// Make sure suppress is set to either true or false
+	suppress = suppress ? true : false;
+
 	var file_name = $('#upload-file').val();
 
 	if (file_name != null && file_name.length > 0) {
@@ -141,13 +165,15 @@ function validateFile() {
 		}
 	}
 	else {
-		// Add the error class if it has not already been applied
-		if (!$('#upload-file-group').hasClass('has-error')) {
-			$('#upload-file-group').addClass('has-error');
-		}
+		if (!suppress) {
+			// Add the error class if it has not already been applied
+			if (!$('#upload-file-group').hasClass('has-error')) {
+				$('#upload-file-group').addClass('has-error');
+			}
 
-		// Show an error message
-		$('#upload-file-validation').text('Please choose an image file to upload.');
+			// Show an error message
+			$('#upload-file-validation').text('Please choose an image file to upload.');
+		}
 	}
 
 	return false;
@@ -162,21 +188,21 @@ function validateUpload() {
 	var validation_passed = true;
 
 	// Validate the title first
-	validation_tmp = validateTitle();
+	validation_tmp = validateTitle(false);
 	if (!validation_tmp) {
 		// Title failed validation
 		validation_passed = false;
 	}
 
 	// Validate the description (this really doesn't do anything but I leave it here for the future)
-	validation_tmp = validateTitle();
+	validation_tmp = validateTitle(false);
 	if (!validation_tmp) {
 		// Description failed validation (How? Who knows!)
 		validation_passed = false;
 	}
 
 	// Validate the file chosen
-	validation_tmp = validateFile();
+	validation_tmp = validateFile(false);
 	if (!validation_tmp) {
 		// File failed validation
 		validation_passed = false;
