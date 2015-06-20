@@ -53,7 +53,7 @@ function validateTitle() {
 			return true;
 		}
 		else {
-			// Error
+			// Error - Invalid characters in the title
 			// Add the error class if it has not already been applied
 			if (!$('#upload-title-group').hasClass('has-error')) {
 				$('#upload-title-group').addClass('has-error');
@@ -62,6 +62,16 @@ function validateTitle() {
 			// Show an error message
 			$('#upload-title-validation').text('Image titles can only contain both uppercase and lowercase letters A to Z, numbers and spaces.');
 		}
+	}
+	else {
+		// Error - Empty or null
+		// Add the error class if it has not already been applied
+		if (!$('#upload-title-group').hasClass('has-error')) {
+			$('#upload-title-group').addClass('has-error');
+		}
+
+		// Show an error message
+		$('#upload-title-validation').text('Please enter a suitable title for the image.');
 	}
 	return false;
 }

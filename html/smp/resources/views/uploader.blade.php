@@ -5,7 +5,7 @@
 <script type="text/javascript" src="/smp/upload.js"></script>
 <script type="text/javascript">
 	// Add the CSRF Token
-	csrf_token = "{!! csrf_field() !!}";
+	csrf_token = "{{ csrf_token() }}";
 </script>
 @stop
 @section('content')
@@ -27,7 +27,7 @@
 			<!-- Image File -->
 			<div id="upload-description-group" class="form-group">
 				<label for="upload-file">Image File*</label>
-				<input type="file" id="upload-file" name="upload-file">
+				<input type="file" id="upload-file" name="upload-file" accept=".jpg,.jpeg,.bmp,.gif,.png">
 				<p id="upload-file-validation" class="validation-error"></p>
 			</div>
 
