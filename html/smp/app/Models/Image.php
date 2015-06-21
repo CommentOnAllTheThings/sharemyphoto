@@ -27,6 +27,7 @@ class Image extends Model
         $image_return_data['status'] = (int)$image_status->image_status;
         $image_return_data['title'] = $image_status->image_title;
         $image_return_data['file_path'] = $image_status->image_file_path;
+        $image_return_data['thumb_path'] = $image_status->image_thumb_path;
 
         return $image_return_data;
     }

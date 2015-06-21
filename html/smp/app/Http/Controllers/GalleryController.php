@@ -11,6 +11,9 @@ use Storage;
 // Our Image Model
 use App\Models\Image;
 
+// Use Intervention Image
+use Intervention\Image\Facades\Image as Img;
+
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /*
@@ -66,14 +69,15 @@ class GalleryController extends Controller {
 		@returns The uploader view.
 	*/
 	public function showUploader() {
+		// Return the uploader view.
 		return view('uploader');
 	}
 
 	/*
 		Description: Uploads an image from the client's computer to the server.
 
-		@param TO DO
-		@returns TO DO
+		@param request The HTTP request.
+		@returns A redirect to either the image page or back to the upload page.
 	*/
 	public function uploadImage(Request $request) {
 		// Flag to determine if the image upload was successful
@@ -108,6 +112,7 @@ class GalleryController extends Controller {
 			return redirect()->route('gallery_uploader')->with('message', 'Please ensure you have entered a valid image title and image file!');
 		}
 
+		// Check if the file is valid...
 		if (!$file->isValid()) {
 			// Send the user back to the image upload page
 			return redirect()->route('gallery_uploader')->with('message', 'Invalid image file! Please try again.');
@@ -122,7 +127,7 @@ class GalleryController extends Controller {
 		$guid_length = mt_rand(8, 32);
 
 		// Generate random GUID of length $guid_length
-		$generated_guid = str_random($guid_length);
+		$image_guid = str_random($guid_length);
 
 		// Generate random delete key
 		$generated_delete_key = str_random(128);
@@ -136,33 +141,52 @@ class GalleryController extends Controller {
 		// Create a new entry in our image table (smp_images)
 		$image = new Image;
 		// Set the values to map to the table columns
-        $image->image_guid = $generated_guid;
-        $image->image_title = $title;
-        $image->image_description = $description;
-        $image->image_status = 1;
-        $image->image_delete_key = $generated_delete_key;
-        // TO DO -- If and when you do implement users, you can set user_id HERE!
-        $creation_success = $image->save();
+		$image->image_guid = $image_guid;
+		$image->image_title = $title;
+		$image->image_description = $description;
+		$image->image_status = 1;
+		$image->image_delete_key = $generated_delete_key;
+		// TO DO -- If and when you do implement users, you can set user_id HERE!
+		$creation_success = $image->save();
 
-        // Success, now manipulate the file!
+		// Success, now manipulate the file!
 		if ($creation_success) {
 			// The name of the image (GUID + . + EXTENSION)
-			$image_name = sprintf('%s.%s', $generated_guid, $file_extension);
+			$image_name = sprintf('%s.%s', $image_guid, $file_extension);
 
-			// Generate the target path to save the image file to
-			$target_image_path = sprintf('%s/app/%s/%d', storage_path(), GalleryController::IMAGE_PATH, $user_id);
+			// The name of the thumbnail image (thumb_ + GUID + . + EXTENSION)
+			$image_thumb_name = 'thumb_'.$image_name;
 
-			// Generate the full path to the image file
-			$target_image_full_path = sprintf('%s/%d/%s', GalleryController::IMAGE_PATH, $user_id, $image_name);
+			// Generate the path to the folder housing all of the images
+			$image_folder = sprintf('%s/app/%s/%d', storage_path(), GalleryController::IMAGE_PATH, $user_id);
+
+			// Generate the path relative to the storage/app folder
+			$image_relative_path = sprintf('%s/%d', GalleryController::IMAGE_PATH, $user_id);
+
+			// Generate the relative and full path to the image file
+			$image_file_relative_path = sprintf('%s/%s', $image_relative_path, $image_name);
+			$image_file_full_path = sprintf('%s/%s', $image_folder, $image_name);
+
+			// Generate the relative and full path to the thumbnail file
+			$image_thumb_relative_path = sprintf('%s/%s', $image_relative_path, $image_thumb_name);
+			$image_thumb_full_path = sprintf('%s/%s', $image_folder, $image_thumb_name);
 
 			// Move the file from the temporary directory to where we want it under storage/images/[id]/...
-			$save_sucessful = $file->move($target_image_path, $image_name);
+			$save_sucessful = $file->move($image_folder, $image_name);
+
+			// Make a thumbnail of the image
+			try {
+				$image_resize = Img::make($image_file_full_path)->resize(100, 100);
+				$image_resize->save($image_thumb_full_path);
+			}
+			catch (NotReadableException $e) { }
 
 			// Did we save it successfully?
 			if ($save_sucessful) {
 				// Yes
-				// Update the path in the database
-				$image->image_file_path = $target_image_full_path;
+				// Update the image and thumbnail path in the database
+				$image->image_file_path = $image_file_relative_path;
+				$image->image_thumb_path = $image_thumb_relative_path;
 				$db_save_successful = $image->save();
 
 				// Only set $image_upload_successful to true if we updated the image path!
@@ -198,7 +222,7 @@ class GalleryController extends Controller {
 	*/
 	public function getProgress() {
 		// TO DO
-		return ['progress' => '50'];
+		return ['progress' => '0'];
 	}
 
 	/*
@@ -238,12 +262,23 @@ class GalleryController extends Controller {
 	}
 
 	/*
-		Description: Retrieves the image file from the server.
+		Description: Retrieves the thumbnail image file from the server.
 
 		@param guid The image's unique identifier.
-		@returns TO DO
+		@returns The image thumbnail or forces a 404 when the GUID doesn't exist.
 	*/
-	public function getImage($guid) {
+	public function getThumbnail($guid) {
+		// Invoke the getImage method, and pass in true for $thumbnail to retrieve the thumbnail image
+		return $this->getImage($guid, true);
+	}
+
+	/*
+		Description: Retrieves the full size image file or thumbnail (if $thumbnail == true) from the server.
+
+		@param guid The image's unique identifier.
+		@returns The image or image thumbnail. Forces a 404 when the GUID doesn't exist.
+	*/
+	public function getImage($guid, $thumbnail = false) {
 		// Check if the GUID is set and >0 characters
 		if (isset($guid) && strlen($guid) > 0) {
 			try {
@@ -252,15 +287,23 @@ class GalleryController extends Controller {
 					// Retrieve our local disk
 					$local_disk = Storage::disk('local');
 
+					// Determine which image file we need, default is the full size image
+					$use_image_path = $image_information['file_path'];
+
+					// Should we get the thumbnail instead?
+					if ($thumbnail === true) {
+						$use_image_path = $image_information['thumb_path'];
+					}
+
 					// Check if the file path is not empty or null
-					if (isset($image_information['file_path']) && strlen($image_information['file_path']) > 0) {
+					if (isset($use_image_path) && strlen($use_image_path) > 0) {
 						// Check if the file exists
-						if ($local_disk->exists($image_information['file_path'])) {
+						if ($local_disk->exists($use_image_path)) {
 							// Get the file MINE type
-							$file_mime_type = $local_disk->mimeType($image_information['file_path']);
+							$file_mime_type = $local_disk->mimeType($use_image_path);
 
 							// Send the image data along with the Content-Type header to tell the browser the MIME type
-							return response($local_disk->get($image_information['file_path']), 200)->header('Content-Type', $file_mime_type);
+							return response($local_disk->get($use_image_path), 200)->header('Content-Type', $file_mime_type);
 						}
 						else {
 							// File doesn't exist

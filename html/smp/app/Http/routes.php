@@ -61,6 +61,11 @@ Route::get('/image/get/{guid}', [
 	'uses' => 'GalleryController@getImage'
 ])->where('guid', '[A-Za-z0-9]+');
 
+Route::get('/image/get/thumbnail/{guid}', [
+	'as' => 'gallery_retrieve_thumb',
+	'uses' => 'GalleryController@getThumbnail'
+])->where('guid', '[A-Za-z0-9]+');
+
 /* TO DO
 	Route::get('/login', function(){
 		return 'Login Form';
