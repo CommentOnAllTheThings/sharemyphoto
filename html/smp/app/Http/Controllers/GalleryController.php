@@ -247,6 +247,7 @@ class GalleryController extends Controller {
 		$image->image_description = $description;
 		$image->image_status = 1;
 		$image->image_delete_key = $generated_delete_key;
+		$image->uploader_ip_address = $request->ip();
 		// TO DO -- If and when you do implement users, you can set user_id HERE!
 		$creation_success = $image->save();
 

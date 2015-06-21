@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS `smp_images` (
 	`image_status` TINYINT NOT NULL DEFAULT 2,
 	`image_delete_key` VARCHAR(128) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
 	`image_hash` VARCHAR(96) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+	`uploader_ip_address` VARCHAR(256) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
 	`user_id` BIGINT UNSIGNED DEFAULT NULL,
 	`created_at` DATETIME DEFAULT NULL,
 	`updated_at` DATETIME DEFAULT NULL,
