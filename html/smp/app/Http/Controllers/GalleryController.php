@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 */
 class GalleryController extends Controller {
 	const IMAGE_PATH = 'images';
+	const IMAGES_PER_PAGE = 12;
 
 	/*
 		Description: Gets the target page from the gallery
@@ -40,24 +41,124 @@ class GalleryController extends Controller {
 		if ($page_number < 1)
 			abort(404);
 
+		// Flag to determine if we should just show an error page
+		$no_images_available = true;
+
+		// How many images have been uploaded?
+		$number_images = 0;
+
 		// TO DO -- Update highest page number and retrieve list of images!
 		$highest_page = 1;
 
-		// TO DO
-		$images = Image::all();
+		// Create our array to hold our images
+		$image_list = array();
+
+		// Get the number of images
+		$images = Image::getNumberOfImages();
+		if (isset($images) && count($images) > 0) {
+			// Get the count
+			$number_images = $images[0]->number_images;
+
+			// One or more images
+			if ($number_images > 0) {
+				$no_images_available = false;
+
+				// Calculate the number of pages
+				$number_of_pages = (int)($number_images / GalleryController::IMAGES_PER_PAGE);
+
+				// Calculate the number of images that don't make IMAGES_PER_PAGE
+				$number_of_overflow_images = $number_images % GalleryController::IMAGES_PER_PAGE;
+
+				// When there are overflow images, we need to add an extra page to house them!
+				if ($number_of_overflow_images > 0)
+					$number_of_pages = $number_of_pages + 1;
+
+				// Save the number of pages to the highest page argument
+				$highest_page = $number_of_pages;
+
+				// Calculate the image offset
+				$image_offset = ($page_number - 1) * GalleryController::IMAGES_PER_PAGE;
+
+				// Get the list of images
+				$image_list = Image::getImages($image_offset, GalleryController::IMAGES_PER_PAGE);
+			}
+		}
 
 		// 404 if the page number exceeds the highest page
 		if ($page_number > $highest_page)
 			abort(404);
 
+		// If there are no images available show an error message
+		if ($no_images_available) {
+			return view('gallery', ['no_images' => true]);
+		}
+
+		// Determine what we will need to show in the pagination control
+		// Keep track of the low and max page numbers!
+		$min_page = 1;
+		$max_page = 1;
+
+		// Determine the lowest page number
+		if ($page_number > 3) {
+			// Lowest Page can be up to 2 pages before
+			$min_page = $page_number - 2;
+
+			// Highest Page can be up to 2 page after the current page
+			$page_delta = $highest_page - $page_number;
+
+			// Check to see what the max we should display is
+			if ($page_delta >= 0) {
+				switch ($page_delta) {
+					// Less than two
+					case 1:
+					case 0:
+						if ($highest_page > 4)
+							$min_page = $highest_page - 4;
+						$max_page = $highest_page;
+						break;
+					// Two or more!
+					default:
+						$max_page = $page_number + 2;
+						break;
+				}
+			}
+			else // Negative, not sure how this is possible...either way, clamp to highest page!
+				$max_page = $highest_page;
+		}
+		else {
+			if ($highest_page <= 5) {
+				// Highest page is 5
+				$max_page = $highest_page;
+			}
+			else {
+				// Cap at 5
+				$max_page = 5;
+			}
+		}
+
 		// Initialize parameters to pass to gallery view
 		$view_parameters = array();
+
+		// Set the parameter to signify that we have images -- I apologise it's a double negative! >.<
+		$view_parameters['no_images'] = false;
 
 		// Save current page number
 		$view_parameters['current_page'] = $page_number;
 
 		// Save max (ie. highest) page number
 		$view_parameters['highest_page'] = $highest_page;
+
+		// Save the number of images hosted
+		$view_parameters['images_uploaded'] = $number_images;
+
+		// Save the lowest page number to show in the pagination control
+		$view_parameters['min_page'] = $min_page;
+
+		// Save the highest page number to show in the pagination control
+		$view_parameters['max_page'] = $max_page;
+
+		// Save the list of images to be displayed on the page
+		$view_parameters['list_images'] = $image_list;
 
 		// Process the view
 		return view('gallery', $view_parameters);
@@ -176,7 +277,7 @@ class GalleryController extends Controller {
 
 			// Make a thumbnail of the image
 			try {
-				$image_resize = Img::make($image_file_full_path)->resize(100, 100);
+				$image_resize = Img::make($image_file_full_path)->fit(100, 100);
 				$image_resize->save($image_thumb_full_path);
 			}
 			catch (NotReadableException $e) { }
@@ -239,8 +340,12 @@ class GalleryController extends Controller {
 				if ($image_information['status'] == 1) {
 					// Create the array of parameters to house the path to the image file
 					$view_parameters = array();
+					// Copy the title
 					$view_parameters['image_title'] = $image_information['title'];
+					// Copy the image path
 					$view_parameters['image_path'] = sprintf('/image/get/%s', $guid);
+					// Don't show the confirm delete form!
+					$view_parameters['confirm_delete'] = false;
 
 					// Send back the view
 					return view('showimage', $view_parameters);
@@ -330,13 +435,48 @@ class GalleryController extends Controller {
 	}
 
 	/*
-		Description: Marks an image or a set of images as deleted on the server.
+		Description: Asks the user to confirm that they want to delete the image.
 
-		@param TO DO
-		@returns TO DO
+		@param guid The image unique identifier.
+		@param key The image deletion key.
+		@returns The image deletion view.
 	*/
 	public function showDeleteImageConfirmation($guid, $key) {
-		return '';
+		// Check if the GUID is set and >0 characters
+		if (isset($guid, $key) && strlen($guid) > 0 && strlen($key) > 0) {
+			try {
+				$image_information = Image::getImageInformationFromGUID($guid);
+				if ($image_information['status'] == 1) {
+					// Create the array of parameters to house the path to the image file
+					$view_parameters = array();
+					// Copy the title
+					$view_parameters['image_title'] = $image_information['title'];
+					// Copy the image path
+					$view_parameters['image_path'] = sprintf('/image/get/%s', $guid);
+					// Show the delete confirmation form
+					$view_parameters['confirm_delete'] = true;
+					// Copy the GUID
+					$view_parameters['image_guid'] = $guid;
+					// Copy the deletion key
+					$view_parameters['image_delete_key'] = $key;
+
+					// Send back the view
+					return view('showimage', $view_parameters);
+				}
+				else {
+					// Image is not "Published" (ie. deleted etc.)
+				}
+			}
+			catch (ModelNotFoundException $e) {
+				// Image does not exist!
+			}
+		}
+		else {
+			// No GUID specified! We will 404 here in case someone may have made a change like making GUID optional, perhaps?
+		}
+
+		// Default behaviour is to fail unless the image exists
+		abort(404);
 	}
 
 	/*

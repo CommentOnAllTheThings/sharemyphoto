@@ -10,7 +10,7 @@
         <script type="text/javascript" src="/thirdparty/jquery/jquery.min.js"></script>
 
         <!-- Load Bootstrap -->
-        <link href='/thirdparty/bootstrap/css/bootstrap.min.css' rel='stylesheet' type='text/css'>
+        <link href="/thirdparty/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
         <script type="text/javascript" src="/thirdparty/bootstrap/js/bootstrap.min.js"></script>    
 
         @section('headerincludes')
@@ -56,7 +56,7 @@
 	@section('footer')
 		<div class="text-center">
 			<!-- Copyright -->
-			<h5>&copy; 2015 ShareMyPho.to, All Rights Reserved.</h5>
+			<h5>Copyright &copy; 2015 ShareMyPho.to, All Rights Reserved.</h5>
 			
 			<!-- Disclaimer -->
 			<h6>ShareMyPho.to is not responsible for the content of any images uploaded to the site.</h6>

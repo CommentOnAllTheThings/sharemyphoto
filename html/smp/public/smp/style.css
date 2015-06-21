@@ -11,3 +11,8 @@ textarea {
 .upload-bar {
 	display: none;
 }
+
+div.img-padding {
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
