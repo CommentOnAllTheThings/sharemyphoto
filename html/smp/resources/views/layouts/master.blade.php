@@ -72,6 +72,7 @@
 			
 			<!-- Disclaimer -->
 			<h6>ShareMyPho.to is not responsible for the content of any images uploaded to the site.</h6>
+            <h6>All images uploaded to ShareMyPho.to are property of their respective copyright owners.</h6>
 		</div>
 	@show
 </body>
