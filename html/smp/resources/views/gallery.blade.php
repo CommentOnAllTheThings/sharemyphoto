@@ -8,15 +8,18 @@
 		<div class="text-center">
 			@if (session('deletedmessage'))
 				@if (session('deletedmessagetype') === 1)
-					<div class="alert alert-success" id="info-success">
+					<div class="alert alert-success text-left" id="info-success">
+						<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 						<strong>{{ session('deletedmessage') }}</strong>
 					</div>
 				@elseif (session('deletedmessagetype') === 2)
-					<div class="alert alert-danger" id="info-danger">
+					<div class="alert alert-danger text-left" id="info-danger">
+						<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 						<strong>{{ session('deletedmessage') }}</strong>
 					</div>
 				@else
-					<div class="alert alert-info" id="info-info">
+					<div class="alert alert-info text-left" id="info-info">
+						<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 						<strong>{{ session('deletedmessage') }}</strong>
 					</div>
 				@endif
