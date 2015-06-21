@@ -66,6 +66,11 @@ Route::get('/image/get/thumbnail/{guid}', [
 	'uses' => 'GalleryController@getThumbnail'
 ])->where('guid', '[A-Za-z0-9]+');
 
+Route::get('/image/delete', [
+	'as' => 'gallery_mass_delete',
+	'uses' => 'GalleryController@massDeleteImages'
+]);
+
 /* TO DO
 	Route::get('/login', function(){
 		return 'Login Form';

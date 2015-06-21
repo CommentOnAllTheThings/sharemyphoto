@@ -480,10 +480,11 @@ class GalleryController extends Controller {
 	}
 
 	/*
-		Description: Marks an image or a set of images as deleted on the server.
+		Description: Marks an image as deleted on the server.
 
-		@param TO DO
-		@returns TO DO
+		@param guid The image unique identifier.
+		@param key The image deletion key.
+		@returns The home page (gallery) view with a success or error message.
 	*/
 	public function deleteImage($guid, $key) {
 		// Check if the GUID is set and >0 characters
@@ -520,5 +521,29 @@ class GalleryController extends Controller {
 
 		// Default behaviour is to fail unless the image exists
 		abort(404);
+	}
+
+	/*
+		Description: Mass deletes a set of images on the server.
+
+		@returns The home page (gallery) view with a success or error message.
+	*/
+	public function massDeleteImages(Request $request) {
+		// TO DO
+
+		// Delete the images
+		$deletion_status = false;
+
+		// Did we successfully set the flag to "deleted"?
+		if ($deletion_status) {
+			return redirect()->route('gallery_root')
+				->with('deletedmessage', 'Image(s) deleted successfully.')
+				->with('deletedmessagetype', 1);
+		}
+		else {
+			return redirect()->route('gallery_root')
+				->with('deletedmessage', 'Image(s) could not be deleted. Please try again later.')
+				->with('deletedmessagetype', 2);
+		}
 	}
 }
