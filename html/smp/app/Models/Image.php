@@ -52,6 +52,27 @@ class Image extends Model
     }
 
     /*
+        Description: Gets list of images that are "published" (ie. not deleted) with the specified GUIDs
+
+        @param offset The number of rows we should skip.
+        @param images_per_pages The number of rows we should return.
+        @returns An associative array of images that are published.
+    */
+    public static function getImagesByGUIDs($guids) {
+        // Ensure that we aren't getting nulls passed in
+        if (isset($guids) && is_array($guids)) {
+            return DB::table('smp_images')
+                        ->orderBy('created_at', 'DESC')
+                        ->where('image_status', '=', '1')
+                        ->whereIn('image_guid', $guids)
+                        ->get();
+        }
+
+        // Worst case we return a blank array
+        return array();
+    }
+
+    /*
         Description: Gets the information for an image with a specified GUID
 
         @param guid The GUID of the image to be retrieved from the database

@@ -341,11 +341,11 @@ class GalleryController extends Controller {
 			try {
 				// Flag for deletion confirmation
 				$delete_image = false;
-				
+
 				if ($delete_confirmation && isset($delete_key) && strlen($delete_key) > 0) {
 					$delete_image = true;
 					// Check that the image exists, is published and the deletion key is correct and get the row if it all matches!
-					$image_information = Image::getImageInformationFromGUID($guid, true, $key);
+					$image_information = Image::getImageInformationFromGUID($guid, true, $delete_key);
 				}
 				else {
 					// Note: When the delete_key is empty and delete_confirmation is set, we will just ignore the request and just show the image instead!
@@ -372,7 +372,7 @@ class GalleryController extends Controller {
 					// Copy the GUID
 					$view_parameters['image_guid'] = $guid;
 					// Copy the deletion key
-					$view_parameters['image_delete_key'] = $key;
+					$view_parameters['image_delete_key'] = $delete_key;
 				}
 
 				// Send back the view
@@ -596,30 +596,18 @@ class GalleryController extends Controller {
 		// No
 		// Let's get a list of images to display to the user
 
-		// Array to keep track of images to be deleted
-		$image_list = array();
+		// Array to keep track of image GUIDs to be deleted
+		$guids = array();
 
 		// Create list of images to be deleted
 		foreach($images_to_delete as $guid => $value) {
-			if (isset($guid) && strlen($guid) > 0) {
-				try {
-					// Get the image data from our image table
-					$image_information = Image::getImageInformationFromGUID($guid, true);
-
-					// Create the array of parameters to house the path to the image file
-					$image_data = array();
-					// Copy the GUID
-					$image_data['image_guid'] = $guid;
-					// Copy the title
-					$image_data['image_title'] = $image_information['title'];
-
-					$image_list[] = $image_data;
-				}
-				catch (ModelNotFoundException $e) {
-					// No such image!
-				}
+			if (isset($guid, $value) && strlen($guid) > 0 && strcasecmp($value, '1') == 0) {
+				// Add to the list of GUIDs
+				$guids[] = $guid;
 			}
 		}
+
+		$image_list = Image::getImagesByGUIDs($guids);
 
 		// Adapted from the gallery view!
 		// Initialize parameters to pass to gallery view
