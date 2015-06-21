@@ -70,17 +70,3 @@ Route::get('/image/delete', [
 	'as' => 'gallery_mass_delete',
 	'uses' => 'GalleryController@massDeleteImages'
 ]);
-
-/* TO DO
-	Route::get('/login', function(){
-		return 'Login Form';
-	});
-
-	Route::post('/login', function(){
-		return 'Authenticating...';
-	});
-
-	Route::get('/logout', function(){
-		return 'Logout';
-	});
-*/

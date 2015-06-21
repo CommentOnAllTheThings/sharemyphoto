@@ -69,12 +69,6 @@
 						@endif
 					</ul>
 				</nav>
-				<!-- Page {{ $current_page }} of {{ $highest_page }}<br/> -->
-				<!--@if($images_uploaded === 1)
-					<h5>Site is hosting {{ $images_uploaded }} Image</h5>
-				@else
-					<h5>Site is hosting {{ $images_uploaded }} Images</h5>
-				@endif-->
 			@endif
 		</div>
 	</div>
