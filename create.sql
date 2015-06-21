@@ -9,6 +9,7 @@ USE itdept_test;
 CREATE TABLE IF NOT EXISTS `smp_images` (
 	`image_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 	`image_guid` VARCHAR(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+	`image_file_path` VARCHAR(4096) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
 	`image_title` VARCHAR(128) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
 	`image_description` TEXT CHARACTER SET utf8 COLLATE utf8_general_ci,
 	`image_status` TINYINT NOT NULL DEFAULT 2,

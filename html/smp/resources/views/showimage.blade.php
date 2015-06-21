@@ -3,7 +3,8 @@
 @section('content')
     <div class="container">
         <div class="text-center">
-			<img src="{{ $image_path }}" class="img-responsive center-block" />
+			<h2>{{ $image_title }}</h2>
+			<img src="{{ $image_path }}" alt="{{ $image_title }}" class="img-responsive center-block" />
 		</div>
 	</div>
 @stop

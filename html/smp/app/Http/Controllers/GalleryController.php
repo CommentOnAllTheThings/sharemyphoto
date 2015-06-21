@@ -3,14 +3,22 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
-use App\Models\Image;
 use Validator;
+use Storage;
+
+// Our Image Model
+use App\Models\Image;
+
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /*
 	Description: Our image gallery controller which retrieves, uploads and deletes images on the site
 */
 class GalleryController extends Controller {
+	const IMAGE_PATH = 'images';
+
 	/*
 		Description: Gets the target page from the gallery
 
@@ -77,32 +85,53 @@ class GalleryController extends Controller {
 		// The image delete key
 		$image_delete_key = '';
 
+		// Read in the POST data and substitute any default values
 		$title = $request->input('upload-title', 'No Title');
 		$description = $request->input('upload-description', '');
 		$file = $request->file('upload-file');
-		// Storage::disk('local')->put($file->getFilename().'.'.$extension,  File::get($file));
 
 		// Create our array of data to test in the validator
-		$validator_data = array('imagefile' => $file);
+		$validator_data = array();
+		$validator_data['imagetitle'] = $title;
+		$validator_data['imagefile'] = $file;
 
-		// Create our validator and test it as an image
+		// Create our validator and test both the title and image
 		$validator = validator::make($validator_data, [
-			'imagefile' => 'required|image'
+			'imagetitle' => 'required|string',
+			'imagefile' => 'required|image',
 		]);
 
-		// Did validation pass on the image?
+		// Did validation pass on the image and title?
 		if ($validator->fails()) {
-			// No, either they didn't choose an image or the file is of the wrong type!
+			// No, either they didn't choose an image, the file is of the wrong type or the title is not valid!
 			// Send the user back to the image upload page
-			return redirect()->route('gallery_uploader')->with('message', 'Please select an image file to upload.');
+			return redirect()->route('gallery_uploader')->with('message', 'Please ensure you have entered a valid image title and image file!');
+		}
+
+		if (!$file->isValid()) {
+			// Send the user back to the image upload page
+			return redirect()->route('gallery_uploader')->with('message', 'Invalid image file! Please try again.');
 		}
 
 		// Validation is ok, keep going!
-		// Generate random GUID
-		$generated_guid = str_random(32);
+		// Get the file extension
+		$file_extension = $file->getClientOriginalExtension();
+
+		// Determine what length GUID we should generate
+		// Minimum length is 8 characters, maximum is 32
+		$guid_length = mt_rand(8, 32);
+
+		// Generate random GUID of length $guid_length
+		$generated_guid = str_random($guid_length);
 
 		// Generate random delete key
 		$generated_delete_key = str_random(128);
+
+		// Variable to keep track of the currently logged in user id (default for anonymous users/not logged in is 0!)
+		$user_id = 0;
+
+		// Get the current logged in user's id
+		// TO DO
 
 		// Create a new entry in our image table (smp_images)
 		$image = new Image;
@@ -115,12 +144,37 @@ class GalleryController extends Controller {
         // TO DO -- If and when you do implement users, you can set user_id HERE!
         $creation_success = $image->save();
 
-        if ($creation_success) {
-        	$image_guid = $generated_guid;
+        // Success, now manipulate the file!
+		if ($creation_success) {
+			// The name of the image (GUID + . + EXTENSION)
+			$image_name = sprintf('%s.%s', $generated_guid, $file_extension);
 
-        	// Process the file
+			// Generate the target path to save the image file to
+			$target_image_path = sprintf('%s/app/%s/%d', storage_path(), GalleryController::IMAGE_PATH, $user_id);
 
-        }
+			// Generate the full path to the image file
+			$target_image_full_path = sprintf('%s/%d/%s', GalleryController::IMAGE_PATH, $user_id, $image_name);
+
+			// Move the file from the temporary directory to where we want it under storage/images/[id]/...
+			$save_sucessful = $file->move($target_image_path, $image_name);
+
+			// Did we save it successfully?
+			if ($save_sucessful) {
+				// Yes
+				// Update the path in the database
+				$image->image_file_path = $target_image_full_path;
+				$db_save_successful = $image->save();
+
+				// Only set $image_upload_successful to true if we updated the image path!
+				if ($db_save_successful) {
+					$image_upload_successful = true;
+				}
+				else {
+					// Send the user back to the image upload page
+					return redirect()->route('gallery_uploader')->with('message', 'We couldn\'t save your image. Please try again later.');
+				}
+			}
+		}
 
 		if (!$image_upload_successful) {
 			// Send the user back to the image upload page
@@ -154,8 +208,33 @@ class GalleryController extends Controller {
 		@returns TO DO
 	*/
 	public function showImage($guid) {
-		// TO DO
-		return view('showimage', ['image_path' => '/image/to/do']);
+		// Check if the GUID is set and >0 characters
+		if (isset($guid) && strlen($guid) > 0) {
+			try {
+				$image_information = Image::getImageInformationFromGUID($guid);
+				if ($image_information['status'] == 1) {
+					// Create the array of parameters to house the path to the image file
+					$view_parameters = array();
+					$view_parameters['image_title'] = $image_information['title'];
+					$view_parameters['image_path'] = sprintf('/image/get/%s', $guid);
+
+					// Send back the view
+					return view('showimage', $view_parameters);
+				}
+				else {
+					// Image is not "Published" (ie. deleted etc.)
+				}
+			}
+			catch (ModelNotFoundException $e) {
+				// Image does not exist!
+			}
+		}
+		else {
+			// No GUID specified! We will 404 here in case someone may have made a change like making GUID optional, perhaps?
+		}
+
+		// Default behaviour is to fail unless the image exists
+		abort(404);
 	}
 
 	/*
@@ -165,7 +244,46 @@ class GalleryController extends Controller {
 		@returns TO DO
 	*/
 	public function getImage($guid) {
-		return '';
+		// Check if the GUID is set and >0 characters
+		if (isset($guid) && strlen($guid) > 0) {
+			try {
+				$image_information = Image::getImageInformationFromGUID($guid);
+				if ($image_information['status'] == 1) {
+					// Retrieve our local disk
+					$local_disk = Storage::disk('local');
+
+					// Check if the file path is not empty or null
+					if (isset($image_information['file_path']) && strlen($image_information['file_path']) > 0) {
+						// Check if the file exists
+						if ($local_disk->exists($image_information['file_path'])) {
+							// Get the file MINE type
+							$file_mime_type = $local_disk->mimeType($image_information['file_path']);
+
+							// Send the image data along with the Content-Type header to tell the browser the MIME type
+							return response($local_disk->get($image_information['file_path']), 200)->header('Content-Type', $file_mime_type);
+						}
+						else {
+							// File doesn't exist
+						}
+					}
+					else {
+						// Image path is empty or null!
+					}
+				}
+				else {
+					// Image is not "Published" (ie. deleted etc.)
+				}
+			}
+			catch (ModelNotFoundException $e) {
+				// Image does not exist!
+			}
+		}
+		else {
+			// No GUID specified! We will 404 here in case someone may have made a change like making GUID optional, perhaps?
+		}
+
+		// Default behaviour is to fail unless the image exists
+		abort(404);
 	}
 
 	/*
