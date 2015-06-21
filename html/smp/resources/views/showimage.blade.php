@@ -2,7 +2,6 @@
 @section('pagetitle', 'Image')
 @section('content')
     <div class="container">
-
         <div class="text-center">
 			@if ($confirm_delete === true)
 				<h2>Are you sure you want to delete the following image?</h2>
@@ -12,6 +11,7 @@
 			</h2>
 			<img src="{{ $image_path }}" alt="{{ $image_title }}" class="img-responsive center-block" />
 			@if ($confirm_delete === false && strlen($image_description) > 0)
+				<br/>
 				<div class="well">{{ $image_description }}</div>
 			@endif
 		</div>
