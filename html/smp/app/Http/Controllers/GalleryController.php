@@ -342,6 +342,8 @@ class GalleryController extends Controller {
 					$view_parameters = array();
 					// Copy the title
 					$view_parameters['image_title'] = $image_information['title'];
+					// Copy the image description
+					$view_parameters['image_description'] = $image_information['image_description'];
 					// Copy the image path
 					$view_parameters['image_path'] = sprintf('/image/get/%s', $guid);
 					// Don't show the confirm delete form!
@@ -451,6 +453,8 @@ class GalleryController extends Controller {
 					$view_parameters = array();
 					// Copy the title
 					$view_parameters['image_title'] = $image_information['title'];
+					// Create a blank description, since there's no point in cluttering up the screen even more
+					$view_parameters['image_description'] = '';
 					// Copy the image path
 					$view_parameters['image_path'] = sprintf('/image/get/%s', $guid);
 					// Show the delete confirmation form
