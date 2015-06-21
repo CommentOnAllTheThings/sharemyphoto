@@ -336,25 +336,22 @@ class GalleryController extends Controller {
 		// Check if the GUID is set and >0 characters
 		if (isset($guid) && strlen($guid) > 0) {
 			try {
-				$image_information = Image::getImageInformationFromGUID($guid);
-				if ($image_information['status'] == 1) {
-					// Create the array of parameters to house the path to the image file
-					$view_parameters = array();
-					// Copy the title
-					$view_parameters['image_title'] = $image_information['title'];
-					// Copy the image description
-					$view_parameters['image_description'] = $image_information['image_description'];
-					// Copy the image path
-					$view_parameters['image_path'] = sprintf('/image/get/%s', $guid);
-					// Don't show the confirm delete form!
-					$view_parameters['confirm_delete'] = false;
+				// Get the image data from our image table
+				$image_information = Image::getImageInformationFromGUID($guid, true);
 
-					// Send back the view
-					return view('showimage', $view_parameters);
-				}
-				else {
-					// Image is not "Published" (ie. deleted etc.)
-				}
+				// Create the array of parameters to house the path to the image file
+				$view_parameters = array();
+				// Copy the title
+				$view_parameters['image_title'] = $image_information['title'];
+				// Copy the image description
+				$view_parameters['image_description'] = $image_information['image_description'];
+				// Copy the image path
+				$view_parameters['image_path'] = sprintf('/image/get/%s', $guid);
+				// Don't show the confirm delete form!
+				$view_parameters['confirm_delete'] = false;
+
+				// Send back the view
+				return view('showimage', $view_parameters);
 			}
 			catch (ModelNotFoundException $e) {
 				// Image does not exist!
@@ -374,7 +371,7 @@ class GalleryController extends Controller {
 		@param guid The image's unique identifier.
 		@returns The image thumbnail or forces a 404 when the GUID doesn't exist.
 	*/
-	public function getThumbnail($guid) {
+	public function getThumbnail($guid = null) {
 		// Invoke the getImage method, and pass in true for $thumbnail to retrieve the thumbnail image
 		return $this->getImage($guid, true);
 	}
@@ -385,43 +382,40 @@ class GalleryController extends Controller {
 		@param guid The image's unique identifier.
 		@returns The image or image thumbnail. Forces a 404 when the GUID doesn't exist.
 	*/
-	public function getImage($guid, $thumbnail = false) {
+	public function getImage($guid = null, $thumbnail = false) {
 		// Check if the GUID is set and >0 characters
 		if (isset($guid) && strlen($guid) > 0) {
 			try {
-				$image_information = Image::getImageInformationFromGUID($guid);
-				if ($image_information['status'] == 1) {
-					// Retrieve our local disk
-					$local_disk = Storage::disk('local');
+				// Get the image data from our image table
+				$image_information = Image::getImageInformationFromGUID($guid, true);
 
-					// Determine which image file we need, default is the full size image
-					$use_image_path = $image_information['file_path'];
+				// Retrieve our local disk
+				$local_disk = Storage::disk('local');
 
-					// Should we get the thumbnail instead?
-					if ($thumbnail === true) {
-						$use_image_path = $image_information['thumb_path'];
-					}
+				// Determine which image file we need, default is the full size image
+				$use_image_path = $image_information['file_path'];
 
-					// Check if the file path is not empty or null
-					if (isset($use_image_path) && strlen($use_image_path) > 0) {
-						// Check if the file exists
-						if ($local_disk->exists($use_image_path)) {
-							// Get the file MINE type
-							$file_mime_type = $local_disk->mimeType($use_image_path);
+				// Should we get the thumbnail instead?
+				if ($thumbnail === true) {
+					$use_image_path = $image_information['thumb_path'];
+				}
 
-							// Send the image data along with the Content-Type header to tell the browser the MIME type
-							return response($local_disk->get($use_image_path), 200)->header('Content-Type', $file_mime_type);
-						}
-						else {
-							// File doesn't exist
-						}
+				// Check if the file path is not empty or null
+				if (isset($use_image_path) && strlen($use_image_path) > 0) {
+					// Check if the file exists
+					if ($local_disk->exists($use_image_path)) {
+						// Get the file MINE type
+						$file_mime_type = $local_disk->mimeType($use_image_path);
+
+						// Send the image data along with the Content-Type header to tell the browser the MIME type
+						return response($local_disk->get($use_image_path), 200)->header('Content-Type', $file_mime_type);
 					}
 					else {
-						// Image path is empty or null!
+						// File doesn't exist
 					}
 				}
 				else {
-					// Image is not "Published" (ie. deleted etc.)
+					// Image path is empty or null!
 				}
 			}
 			catch (ModelNotFoundException $e) {
@@ -443,33 +437,29 @@ class GalleryController extends Controller {
 		@param key The image deletion key.
 		@returns The image deletion view.
 	*/
-	public function showDeleteImageConfirmation($guid, $key) {
+	public function showDeleteImageConfirmation($guid = null, $key = null) {
 		// Check if the GUID is set and >0 characters
 		if (isset($guid, $key) && strlen($guid) > 0 && strlen($key) > 0) {
 			try {
-				$image_information = Image::getImageInformationFromGUID($guid);
-				if ($image_information['status'] == 1 && strcasecmp($image_information['delete_key'], $key) == 0) {
-					// Create the array of parameters to house the path to the image file
-					$view_parameters = array();
-					// Copy the title
-					$view_parameters['image_title'] = $image_information['title'];
-					// Create a blank description, since there's no point in cluttering up the screen even more
-					$view_parameters['image_description'] = '';
-					// Copy the image path
-					$view_parameters['image_path'] = sprintf('/image/get/%s', $guid);
-					// Show the delete confirmation form
-					$view_parameters['confirm_delete'] = true;
-					// Copy the GUID
-					$view_parameters['image_guid'] = $guid;
-					// Copy the deletion key
-					$view_parameters['image_delete_key'] = $key;
+				$image_information = Image::getImageInformationFromGUID($guid, true, $key);
 
-					// Send back the view
-					return view('showimage', $view_parameters);
-				}
-				else {
-					// Image is not "Published" (ie. deleted etc.) or delete key is invalid
-				}
+				// Create the array of parameters to house the path to the image file
+				$view_parameters = array();
+				// Copy the title
+				$view_parameters['image_title'] = $image_information['title'];
+				// Create a blank description, since there's no point in cluttering up the screen even more
+				$view_parameters['image_description'] = '';
+				// Copy the image path
+				$view_parameters['image_path'] = sprintf('/image/get/%s', $guid);
+				// Show the delete confirmation form
+				$view_parameters['confirm_delete'] = true;
+				// Copy the GUID
+				$view_parameters['image_guid'] = $guid;
+				// Copy the deletion key
+				$view_parameters['image_delete_key'] = $key;
+
+				// Send back the view
+				return view('showimage', $view_parameters);
 			}
 			catch (ModelNotFoundException $e) {
 				// Image does not exist!
@@ -490,29 +480,28 @@ class GalleryController extends Controller {
 		@param key The image deletion key.
 		@returns The home page (gallery) view with a success or error message.
 	*/
-	public function deleteImage($guid, $key) {
+	public function deleteImage(Request $request, $guid = null, $key = null) {
+
 		// Check if the GUID is set and >0 characters
 		if (isset($guid, $key) && strlen($guid) > 0 && strlen($key) > 0) {
 			try {
-				$image_information = Image::getImageInformationFromGUID($guid);
-				if ($image_information['status'] == 1 && strcasecmp($image_information['delete_key'], $key) == 0) {
-					// Delete the image
-					$deletion_status = Image::deleteImageFromGUID($guid);
+				$image_information = Image::getImageInformationFromGUID($guid, true, $key);
 
-					// Did we successfully set the flag to "deleted"?
-					if ($deletion_status) {
-						return redirect()->route('gallery_root')
-							->with('deletedmessage', 'Image deleted successfully.')
-							->with('deletedmessagetype', 1);
-					}
-					else {
-						return redirect()->route('gallery_root')
-							->with('deletedmessage', 'Image could not be deleted. Please try again later.')
-							->with('deletedmessagetype', 2);
-					}
+				// Delete the image
+				$deletion_status = Image::deleteImageFromGUID($guid);
+
+				// Did we successfully set the flag to "deleted"?
+				if ($deletion_status) {
+					// Yes, show a success message
+					return redirect()->route('gallery_root')
+						->with('deletedmessage', 'Image deleted successfully.')
+						->with('deletedmessagetype', 1);
 				}
 				else {
-					// Image is not "Published" (ie. deleted etc.) or delete key is invalid
+					// No, show an error message
+					return redirect()->route('gallery_root')
+						->with('deletedmessage', 'Image could not be deleted. Please try again later.')
+						->with('deletedmessagetype', 2);
 				}
 			}
 			catch (ModelNotFoundException $e) {

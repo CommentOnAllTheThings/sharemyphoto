@@ -1,5 +1,8 @@
 @extends('layouts.master')
-@section('pagetitle', 'Image')
+@section('pagetitle', htmlentities($image_title))
+@section('headerincludes')
+<link href="/smp/style.css" rel="stylesheet" type="text/css">
+@stop
 @section('content')
     <div class="container">
         <div class="text-center">
@@ -10,9 +13,13 @@
 				{{ $image_title }}
 			</h2>
 			<img src="{{ $image_path }}" alt="{{ $image_title }}" class="img-responsive center-block" />
-			@if ($confirm_delete === false && strlen($image_description) > 0)
+			@if ($confirm_delete === false)
+				@if (strlen($image_description) > 0)
+					<br/>
+					<div class="well">{{ $image_description }}</div>
+				@endif
 				<br/>
-				<div class="well">{{ $image_description }}</div>
+				<a href="/" class="btn btn-success" role="button">Go Back to Gallery</a>
 			@endif
 		</div>
 		@if($confirm_delete === true)

@@ -2,9 +2,10 @@
 <html lang="en">
     <head>
         <!-- Page Title -->
-        <title>ShareMyPho.to - @yield('pagetitle')</title>
+        <title>ShareMyPho.to - @yield('pagetitle', 'Welcome')</title>
 
-        <!-- CSRF -->
+        <!-- Viewport Meta Tag for Mobile Devices -->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <!-- Load jQuery -->
         <script type="text/javascript" src="/thirdparty/jquery/jquery.min.js"></script>
@@ -21,23 +22,34 @@
     @show
 	<!-- Page Header -->
     @section('header')
+        <!-- Navigation -->
         <nav class="navbar navbar-default">
         	<div class="container-fluid">
         		<div class="navbar-header">
-        			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-menu-collapse" aria-expanded="false">
+                    <!-- Responsive 3 bar button on mobile devices -->
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-menu-collapse" aria-expanded="false">
         				<span class="sr-only">Toggle Navigation</span>
         				<span class="icon-bar"></span>
         				<span class="icon-bar"></span>
         				<span class="icon-bar"></span>
     				</button>
+
+                    <!-- ShareMyPho.to Home Page link -->
     				<a class="navbar-brand" href="/">ShareMyPho.to</a>
         		</div>
 
+                <!-- Navigation Bar Items -->
         		<div class="collapse navbar-collapse" id="main-menu-collapse">
+                    <!-- Gallery and Upload links -->
         			<ul class="nav navbar-nav">
         				<li><a href="/">Gallery</a></li>
         				<li><a href="/image/upload">Upload</a></li>
         			</ul>
+
+                    <!-- GitHub Link -->
+                    <ul class="nav navbar-nav navbar-right">
+                        <a href="https://github.com/CommentOnAllTheThings/sharemyphoto" role="button" class="btn btn-info navbar-btn navbar-btn-margin-left" target="_blank">sharemyphoto Project on GitHub</a>
+                    </ul>
         		</div>
         	</div>
         </nav>

@@ -16,3 +16,11 @@ div.img-padding {
 	padding-top: 5px;
 	padding-bottom: 5px;
 }
+
+div.well {
+	margin-bottom: 0px;
+}
+
+a.navbar-btn-margin-left {
+	margin-left: 10px;
+}

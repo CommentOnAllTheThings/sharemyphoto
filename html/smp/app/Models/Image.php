@@ -38,7 +38,12 @@ class Image extends Model
 
             // Only try to run the query when the number of images per page > 0!
             if ($images_per_page > 0) {
-                return DB::table('smp_images')->orderBy('created_at', 'DESC')->where('image_status', '=', '1')->skip($offset)->take($images_per_page)->get();
+                return DB::table('smp_images')
+                            ->orderBy('created_at', 'DESC')
+                            ->where('image_status', '=', '1')
+                            ->skip($offset)
+                            ->take($images_per_page)
+                            ->get();
             }
         }
 
@@ -50,11 +55,41 @@ class Image extends Model
         Description: Gets the information for an image with a specified GUID
 
         @param guid The GUID of the image to be retrieved from the database
+        @param published_only Should we retrieve information for only images that are enabled?
+        @oaran delete_key The deletion key we used to ensure that we are deleting the correct image
         @returns An associative array containing the image status, title, image path and thumbnail path.
     */
-    public static function getImageInformationFromGUID($guid) {
-        $image_status = Image::where('image_guid', '=', $guid)->firstOrFail();
+    public static function getImageInformationFromGUID($guid, $published_only = true, $delete_key = null) {
+        // Check if we are trying to delete an image, and if we are make sure that the published_only flag is set to true
+        if (isset($delete_key) && strlen($delete_key) > 0) {
+            $published_only = true;
+        }
 
+        // Determine whether we need to get information for a published image or for any image regardless of status
+        if ($published_only === true) {
+            // Get information for a published image only!
+            // Are we trying to delete an image?
+            if (isset($delete_key) && strlen($delete_key) > 0) {
+                // Yes, now check the guid and deletion key to make sure they match!
+                $image_status = Image::where('image_guid', '=', $guid)
+                                        ->where('image_status', '=', 1)
+                                        ->where('image_delete_key', '=', $delete_key)
+                                        ->firstOrFail();
+            }
+            else {
+                // No, now check the guid and get the image data
+                $image_status = Image::where('image_guid', '=', $guid)
+                                        ->where('image_status', '=', 1)
+                                        ->firstOrFail();
+            }
+        }
+        else {
+            // Get information for an image regardless of whether it is published or not!
+            $image_status = Image::where('image_guid', '=', $guid)
+                                    ->firstOrFail();
+        }
+
+        // Return data
         $image_return_data = array();
         $image_return_data['status'] = (int)$image_status->image_status;
         $image_return_data['title'] = $image_status->image_title;
