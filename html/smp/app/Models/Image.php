@@ -60,7 +60,20 @@ class Image extends Model
         $image_return_data['title'] = $image_status->image_title;
         $image_return_data['file_path'] = $image_status->image_file_path;
         $image_return_data['thumb_path'] = $image_status->image_thumb_path;
+        $image_return_data['delete_key'] = $image_status->image_delete_key;
 
         return $image_return_data;
+    }
+
+    /*
+        Description: Gets the information for an image with a specified GUID
+
+        @param guid The GUID of the image to be retrieved from the database
+        @returns An associative array containing the image status, title, image path and thumbnail path.
+    */
+    public static function deleteImageFromGUID($guid) {
+        $image_object = Image::where('image_guid', '=', $guid)->firstOrFail();
+        $image_object->image_status = 5;
+        return $image_object->save();
     }
 }

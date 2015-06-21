@@ -6,6 +6,21 @@
 @section('content')
 	<div class="container">
 		<div class="text-center">
+			@if (session('deletedmessage'))
+				@if (session('deletedmessagetype') === 1)
+					<div class="alert alert-success" id="info-success">
+						<strong>{{ session('deletedmessage') }}</strong>
+					</div>
+				@elseif (session('deletedmessagetype') === 2)
+					<div class="alert alert-danger" id="info-danger">
+						<strong>{{ session('deletedmessage') }}</strong>
+					</div>
+				@else
+					<div class="alert alert-info" id="info-info">
+						<strong>{{ session('deletedmessage') }}</strong>
+					</div>
+				@endif
+			@endif
 			@if ($no_images)
 				<h2>No Images have been uploaded to the site!</h2>
 			@else

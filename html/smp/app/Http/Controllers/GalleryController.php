@@ -446,7 +446,7 @@ class GalleryController extends Controller {
 		if (isset($guid, $key) && strlen($guid) > 0 && strlen($key) > 0) {
 			try {
 				$image_information = Image::getImageInformationFromGUID($guid);
-				if ($image_information['status'] == 1) {
+				if ($image_information['status'] == 1 && strcasecmp($image_information['delete_key'], $key) == 0) {
 					// Create the array of parameters to house the path to the image file
 					$view_parameters = array();
 					// Copy the title
@@ -464,7 +464,7 @@ class GalleryController extends Controller {
 					return view('showimage', $view_parameters);
 				}
 				else {
-					// Image is not "Published" (ie. deleted etc.)
+					// Image is not "Published" (ie. deleted etc.) or delete key is invalid
 				}
 			}
 			catch (ModelNotFoundException $e) {
@@ -486,6 +486,39 @@ class GalleryController extends Controller {
 		@returns TO DO
 	*/
 	public function deleteImage($guid, $key) {
-		return '';
+		// Check if the GUID is set and >0 characters
+		if (isset($guid, $key) && strlen($guid) > 0 && strlen($key) > 0) {
+			try {
+				$image_information = Image::getImageInformationFromGUID($guid);
+				if ($image_information['status'] == 1 && strcasecmp($image_information['delete_key'], $key) == 0) {
+					// Delete the image
+					$deletion_status = Image::deleteImageFromGUID($guid);
+
+					// Did we successfully set the flag to "deleted"?
+					if ($deletion_status) {
+						return redirect()->route('gallery_root')
+							->with('deletedmessage', 'Image deleted successfully.')
+							->with('deletedmessagetype', 1);
+					}
+					else {
+						return redirect()->route('gallery_root')
+							->with('deletedmessage', 'Image could not be deleted. Please try again later.')
+							->with('deletedmessagetype', 2);
+					}
+				}
+				else {
+					// Image is not "Published" (ie. deleted etc.) or delete key is invalid
+				}
+			}
+			catch (ModelNotFoundException $e) {
+				// Image does not exist!
+			}
+		}
+		else {
+			// No GUID specified! We will 404 here in case someone may have made a change like making GUID optional, perhaps?
+		}
+
+		// Default behaviour is to fail unless the image exists
+		abort(404);
 	}
 }

@@ -21,10 +21,6 @@ $(document).ready(function(){
 	$('#upload-file').on('change blur', function(){
 		validateFile(true);
 	});
-
-	/*$('#upload-button').on('click', function(){
-		uploadImage();
-	});*/
 });
 
 var image_upload_interval = null;

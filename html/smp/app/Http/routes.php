@@ -12,12 +12,12 @@
 */
 
 Route::get('/', [
-    'as' => 'gallery',
+    'as' => 'gallery_root',
     'uses' => 'GalleryController@showPage'
 ]);
 
 Route::get('/gallery', [
-    'as' => 'gallery',
+    'as' => 'gallery_main',
     'uses' => 'GalleryController@showPage'
 ]);
 
