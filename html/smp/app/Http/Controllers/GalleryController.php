@@ -331,14 +331,28 @@ class GalleryController extends Controller {
 		Description: Loads the image file page to show a larger version of the image.
 
 		@param guid The image's unique identifier.
-		@returns TO DO
+		@param delete_confirmation Whether we need to show the deletion confirmation box.
+		@param delete_key The image deletion key.
+		@returns The image view.
 	*/
-	public function showImage($guid) {
+	public function showImage($guid, $delete_confirmation = false, $delete_key = null) {
 		// Check if the GUID is set and >0 characters
 		if (isset($guid) && strlen($guid) > 0) {
 			try {
-				// Get the image data from our image table
-				$image_information = Image::getImageInformationFromGUID($guid, true);
+				// Flag for deletion confirmation
+				$delete_image = false;
+				
+				if ($delete_confirmation && isset($delete_key) && strlen($delete_key) > 0) {
+					$delete_image = true;
+					// Check that the image exists, is published and the deletion key is correct and get the row if it all matches!
+					$image_information = Image::getImageInformationFromGUID($guid, true, $key);
+				}
+				else {
+					// Note: When the delete_key is empty and delete_confirmation is set, we will just ignore the request and just show the image instead!
+
+					// Get the image information
+					$image_information = Image::getImageInformationFromGUID($guid, true, null);
+				}
 
 				// Create the array of parameters to house the path to the image file
 				$view_parameters = array();
@@ -348,14 +362,24 @@ class GalleryController extends Controller {
 				$view_parameters['image_description'] = $image_information['image_description'];
 				// Copy the image path
 				$view_parameters['image_path'] = sprintf('/image/get/%s', $guid);
-				// Don't show the confirm delete form!
-				$view_parameters['confirm_delete'] = false;
+				// Show the delete confirmation form
+				$view_parameters['confirm_delete'] = $delete_image;
+
+				// Only copy GUID and key when we are deleting the image!
+				if ($delete_image) {
+					// Blank the description so we don't clutter up the deletion screen
+					$view_parameters['image_description'] = '';
+					// Copy the GUID
+					$view_parameters['image_guid'] = $guid;
+					// Copy the deletion key
+					$view_parameters['image_delete_key'] = $key;
+				}
 
 				// Send back the view
 				return view('showimage', $view_parameters);
 			}
 			catch (ModelNotFoundException $e) {
-				// Image does not exist!
+				// Image does not exist or delete key is incorrect!
 			}
 		}
 		else {
@@ -439,39 +463,8 @@ class GalleryController extends Controller {
 		@returns The image deletion view.
 	*/
 	public function showDeleteImageConfirmation($guid = null, $key = null) {
-		// Check if the GUID is set and >0 characters
-		if (isset($guid, $key) && strlen($guid) > 0 && strlen($key) > 0) {
-			try {
-				$image_information = Image::getImageInformationFromGUID($guid, true, $key);
-
-				// Create the array of parameters to house the path to the image file
-				$view_parameters = array();
-				// Copy the title
-				$view_parameters['image_title'] = $image_information['title'];
-				// Create a blank description, since there's no point in cluttering up the screen even more
-				$view_parameters['image_description'] = '';
-				// Copy the image path
-				$view_parameters['image_path'] = sprintf('/image/get/%s', $guid);
-				// Show the delete confirmation form
-				$view_parameters['confirm_delete'] = true;
-				// Copy the GUID
-				$view_parameters['image_guid'] = $guid;
-				// Copy the deletion key
-				$view_parameters['image_delete_key'] = $key;
-
-				// Send back the view
-				return view('showimage', $view_parameters);
-			}
-			catch (ModelNotFoundException $e) {
-				// Image does not exist!
-			}
-		}
-		else {
-			// No GUID specified! We will 404 here in case someone may have made a change like making GUID optional, perhaps?
-		}
-
-		// Default behaviour is to fail unless the image exists
-		abort(404);
+		// Since this is an extension of the showImage functionality, we will invoke the showImage function with the last two parameters set
+		return $this->showImage($guid, true, $key);
 	}
 
 	/*
@@ -482,12 +475,9 @@ class GalleryController extends Controller {
 		@returns The home page (gallery) view with a success or error message.
 	*/
 	public function deleteImage(Request $request, $guid = null, $key = null) {
-
 		// Check if the GUID is set and >0 characters
 		if (isset($guid, $key) && strlen($guid) > 0 && strlen($key) > 0) {
 			try {
-				$image_information = Image::getImageInformationFromGUID($guid, true, $key);
-
 				// Delete the image
 				$deletion_status = Image::deleteImageFromGUID($guid);
 
@@ -523,21 +513,122 @@ class GalleryController extends Controller {
 		@returns The home page (gallery) view with a success or error message.
 	*/
 	public function massDeleteImages(Request $request) {
-		// TO DO
+		// Determine if they have confirmed the delete action...
+		$action_confirmation = $request->input('confirm_action', '');
 
-		// Delete the images
-		$deletion_status = false;
+		// Get input
+		$images_to_delete = $request->except('confirm_action');
 
-		// Did we successfully set the flag to "deleted"?
-		if ($deletion_status) {
-			return redirect()->route('gallery_root')
-				->with('deletedmessage', 'Image(s) deleted successfully.')
-				->with('deletedmessagetype', 1);
+		// Confirmed?
+		if (isset($action_confirmation) && strcasecmp($action_confirmation, '1') == 0) {
+			// Yes
+			// Put the images on the chopping block!
+			$number_images_to_delete = 0;
+			$number_images_deleted = 0;
+
+			// Iterate through the list of images to delete
+			foreach($images_to_delete as $key => $value) {
+				// Check if the key and values are set
+				// Key maps to the GUID
+				// Value maps to the value which should be 1 if they marked it for deletion!
+
+				// Make sure they actually marked the image for deletion!
+				if (isset($key, $value) && strcasecmp($value, '1') == 0) {
+					// Increment the counter of images to delete
+					$number_images_to_delete++;
+
+					// Delete the image
+					$deletion_status = Image::deleteImageFromGUID($key);
+					if ($deletion_status){
+						// Increment the counter of images deleted
+						$number_images_deleted++;
+					}
+				}
+			}
+
+			// Delete the images
+			$deletion_status = false;
+
+			// Should we use the plural form for the messages?
+			$plural_form = '';
+			if ($number_images_to_delete != 1) {
+				// Yes, use the plural form
+				$plural_form = 's';
+			}
+
+			// Did we successfully set the flag to "deleted"?
+			if ($number_images_to_delete == $number_images_deleted && $number_images_to_delete > 0) {
+				// Deleted all images successfully!
+				
+				// Generate the deletion message
+				$delete_message = sprintf('Image%s deleted successfully!', $plural_form);
+
+				// Send the user back to the gallery
+				return redirect()->route('gallery_root')
+						->with('deletedmessage', $delete_message)
+						->with('deletedmessagetype', 1);
+			}
+			else if ($number_images_to_delete > 0 && $number_images_deleted == 0) {
+				// Generate the deletion message
+				$delete_message = sprintf('No image%s could not be deleted. Please try again later.', $plural_form);
+
+				// Send the user back to the gallery
+				return redirect()->route('gallery_root')
+					->with('deletedmessage', $delete_message)
+					->with('deletedmessagetype', 2);
+			}
+			else if ($number_images_to_delete > 0 && $number_images_deleted > 0 && $number_images_to_delete != $number_images_deleted) {
+				// Generate the deletion message
+				$delete_message = sprintf('Only %d of %d image%s were deleted. Please try to delete the remaining images later.', $number_images_deleted, $number_images_to_delete, $plural_form);
+
+				return redirect()->route('gallery_root')
+					->with('deletedmessage', $delete_message)
+					->with('deletedmessagetype', 3);
+			}
+			else {
+				// No images were deleted, or no images are available to be deleted.
+				return redirect()->route('gallery_root')
+					->with('deletedmessage', 'No images were deleted.')
+					->with('deletedmessagetype', 3);
+			}
 		}
-		else {
-			return redirect()->route('gallery_root')
-				->with('deletedmessage', 'Image(s) could not be deleted. Please try again later.')
-				->with('deletedmessagetype', 2);
+
+		// No
+		// Let's get a list of images to display to the user
+
+		// Array to keep track of images to be deleted
+		$image_list = array();
+
+		// Create list of images to be deleted
+		foreach($images_to_delete as $guid => $value) {
+			if (isset($guid) && strlen($guid) > 0) {
+				try {
+					// Get the image data from our image table
+					$image_information = Image::getImageInformationFromGUID($guid, true);
+
+					// Create the array of parameters to house the path to the image file
+					$image_data = array();
+					// Copy the GUID
+					$image_data['image_guid'] = $guid;
+					// Copy the title
+					$image_data['image_title'] = $image_information['title'];
+
+					$image_list[] = $image_data;
+				}
+				catch (ModelNotFoundException $e) {
+					// No such image!
+				}
+			}
 		}
+
+		// Adapted from the gallery view!
+		// Initialize parameters to pass to gallery view
+		$view_parameters = array();
+
+		// Save the list of images to be displayed on the page
+		$view_parameters['list_images'] = $image_list;
+
+		// Show confirmation page
+		return view('deleteconfirmation', $view_parameters);
 	}
 }

@@ -2,6 +2,7 @@
 @section('pagetitle', 'Gallery')
 @section('headerincludes')
 <link href="/smp/style.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="/smp/delete.js"></script>
 @stop
 @section('content')
 	<div class="container">
@@ -28,13 +29,35 @@
 				<h2>No Images have been uploaded to the site!</h2>
 			@else
 				<!-- Images -->
-				<div class="row">
-					@foreach ($list_images as $image)
-						<div class="col-xs-4 col-sm-3 col-md-2 img-padding">
-							<a href="/image/view/{{ $image->image_guid }}"><img src="/image/get/thumbnail/{{ $image->image_guid }}" alt="{{ $image->image_title }}" class="img-responsive center-block"></a>
+				<form method="POST" onsubmit="return validateDeletionForm(false);" id="mass-deletion" action="/image/delete">
+					<div class="panel panel-default">
+						<div class="panel-body">
+							<div class="row">
+								<!-- Iterate through the list of images and create the thumbnails and links -->
+								@foreach ($list_images as $image)
+									<div class="col-xs-4 col-sm-3 col-md-2 img-padding">
+										<a href="/image/view/{{ $image->image_guid }}"><img src="/image/get/thumbnail/{{ $image->image_guid }}" alt="{{ $image->image_title }}" class="img-responsive center-block"></a>
+										<!-- Gallery Image Deletion -->
+										<div class="checkbox gallery-delete-hide">
+											<label>
+												<input type="checkbox" name="{{ $image->image_guid }}" value="1"> Delete this Image?
+											</label>
+										</div>
+									</div>
+								@endforeach
+							</div>
 						</div>
-					@endforeach
-				</div>
+					</div>
+					<!-- Delete Button -->
+					<div class="text-center">
+						<p class="validation-error gallery-delete-hide" id="image-deletion-validation"></p>
+						<button type="submit" class="btn btn-danger gallery-delete-hide" id="delete-button">Delete</button>
+						<button type="submit" onclick="return false;" class="btn btn-success gallery-delete-hide" id="trigger-cancel-button">Cancel</button>
+						{!! csrf_field() !!}
+					</div>
+				</form>
+				<!-- Deletion Tool Trigger Button -->
+				<button type="submit" class="btn btn-default" id="trigger-delete-button"><span class="glyphicon glyphicon-remove"></span> Show Deletion Tool</button>
 				<nav>
 					<ul class="pagination pagination-lg">
 						<!-- << First -->

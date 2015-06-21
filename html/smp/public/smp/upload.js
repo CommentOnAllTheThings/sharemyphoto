@@ -5,7 +5,7 @@ var csrf_token = null;
 var block_ajax = false;
 
 // Our RegExp test for strings
-var test_string = /^[A-Za-z0-9\s!@#'"\$%&?.()\[\]]+$/i;
+var test_string = /^[A-Za-z0-9\s!@#'"\$%&,?.()\[\]<>]+$/i;
 
 // The file extensions we will allow users to upload
 var image_extensions = ['.jpg', '.jpeg', '.bmp', '.gif', '.png'];

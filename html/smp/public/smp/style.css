@@ -24,3 +24,7 @@ div.well {
 a.navbar-btn-margin-left {
 	margin-left: 10px;
 }
+
+.gallery-delete-hide {
+	display: none;
+}
