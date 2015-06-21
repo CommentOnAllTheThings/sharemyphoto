@@ -42,8 +42,8 @@
         		<div class="collapse navbar-collapse" id="main-menu-collapse">
                     <!-- Gallery and Upload links -->
         			<ul class="nav navbar-nav">
-        				<li><a href="/">Gallery</a></li>
-        				<li><a href="/image/upload">Upload</a></li>
+                        <li><a href="/"><span class="glyphicon glyphicon-home"></span> Gallery</a></li>
+                        <li><a href="/image/upload"><span class="glyphicon glyphicon-cloud-upload"> Upload</a></li>
         			</ul>
 
                     <!-- GitHub Link -->
